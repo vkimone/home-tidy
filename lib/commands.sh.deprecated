@@ -1,0 +1,196 @@
+#!/bin/bash
+# commands.sh - Command-based cache cleanup
+
+# =====================================
+# Read command configuration
+# =====================================
+
+read_commands_config() {
+    local config_file="$1"
+    local commands=()
+    
+    if [[ ! -f "$config_file" ]]; then
+        return 0
+    fi
+    
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Ignore comments, empty lines, and section headers ([Section])
+        [[ -z "$line" || "$line" =~ ^[[:space:]]*# || "$line" =~ ^[[:space:]]*\[.*\] ]] && continue
+        commands+=("$line")
+    done < "$config_file"
+    
+    printf '%s\n' "${commands[@]}"
+}
+
+# =====================================
+# Execute command (with Dry Run support)
+# =====================================
+
+run_cleanup_command() {
+    local cmd="$1"
+    local description="$2"
+    local target_path="$3"
+    local dry_run="$4"
+    
+    # Expand target path (handle ~)
+    if [[ -n "$target_path" ]]; then
+        target_path=$(expand_path "$target_path")
+    fi
+    
+    if [[ "$dry_run" == true ]]; then
+        local potential_size=0
+        local size_str=""
+        
+        if [[ -n "$target_path" && -e "$target_path" ]]; then
+            potential_size=$(get_dir_size_bytes "$target_path")
+            if [[ $potential_size -gt 0 ]]; then
+                size_str=" ($(format_size "$potential_size"))"
+            fi
+        fi
+        
+        log_info "[DRY-RUN] Pending execution: $cmd${size_str}"
+        log_info "${DIM}  → $description${NC}"
+        
+        # Return potential reclaimed size even in dry-run
+        echo "$potential_size"
+        return 0
+    fi
+    
+    local base_cmd=$(echo "$cmd" | awk '{print $1}')
+
+    # 1. Check if command exists
+    if ! command -v "$base_cmd" &>/dev/null; then
+        log_warning "Skipping: $cmd"
+        log_info "${DIM}  → Tool '$base_cmd' is not installed.${NC}"
+        echo "0"
+        return 0
+    fi
+
+    # 2. Check if Docker daemon is running (only for docker commands)
+    if [[ "$base_cmd" == "docker" ]]; then
+        if ! docker info >/dev/null 2>&1; then
+            log_warning "Skipping: $cmd"
+            log_info "${DIM}  → Docker daemon is not running.${NC}"
+            echo "0"
+            return 0
+        fi
+    fi
+    
+    log_info "Executing command: $cmd"
+    log_info "${DIM}  → $description${NC}"
+    
+    # Measure size before execution (only if target path exists)
+    local start_size=0
+    if [[ -n "$target_path" && -e "$target_path" ]]; then
+        start_size=$(get_dir_size_bytes "$target_path")
+        log_debug "  → Initial size of $target_path: $(format_size "$start_size")"
+    fi
+    
+    # Execute and capture error
+    local error_output
+    local exit_code=0
+    error_output=$(eval "$cmd" 2>&1 >/dev/null) || exit_code=$?
+    
+    local reclaimed=0
+    
+    if [[ $exit_code -eq 0 ]]; then
+        # Measure size after execution and calculate difference
+        local reclaimed_msg=""
+        if [[ -n "$target_path" ]]; then
+            local end_size=0
+            if [[ -e "$target_path" ]]; then
+                end_size=$(get_dir_size_bytes "$target_path")
+            fi
+            
+            # Reclaimed size (start size - end size)
+            reclaimed=$((start_size - end_size))
+            if [[ $reclaimed -gt 0 ]]; then
+                reclaimed_msg=" ($(format_size "$reclaimed"))"
+            else
+                reclaimed_msg=" ($(format_size "$reclaimed"))"
+            fi
+            log_debug "  → Final size: $(format_size "$end_size") / Reclaimed: $(format_size "$reclaimed")"
+        fi
+
+        log_success " Completed${reclaimed_msg}"
+        
+        # Return via echo for summation in main loop
+        echo "$reclaimed"
+        return 0
+    else
+        # Remove newlines and trim
+        error_output=$(echo "$error_output" | tr -d '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        if [[ -n "$error_output" ]]; then
+            log_warning "  ❌ Execution failed (Exit Code: $exit_code): $error_output"
+        else
+            log_warning "  ❌ Execution failed (Exit Code: $exit_code)"
+        fi
+        echo "0"
+        return 1
+    fi
+}
+
+# =====================================
+# Execute all cleanup commands
+# =====================================
+
+run_all_cleanup_commands() {
+    local config_file="$1"
+    local dry_run="$2"
+    
+    local commands
+    commands=$(read_commands_config "$config_file")
+    
+    if [[ -z "$commands" ]]; then
+        return 0
+    fi
+    
+    echo ""
+    echo ""
+    if [[ "$dry_run" == true ]]; then
+        echo -e "${BOLD}▒ Command-based Cleanup (Dry Run)${NC}"
+    else
+        echo -e "${BOLD}▒ Executing Command-based Cleanup${NC}"
+    fi
+    echo ""
+    
+    # Use global variables instead of local variables
+    # local success_count=0
+    # local skip_count=0
+    # local total_reclaimed_bytes=0 <-- use G_COMMAND_RECLAIMED
+    
+    while IFS='|' read -r cmd description target_path || [[ -n "$cmd" ]]; do
+        [[ -z "$cmd" ]] && continue
+        
+        # Capture execution result (reclaimed bytes)
+        # Leave stderr to output as is
+        local result
+        local exit_code=0
+        result=$(run_cleanup_command "$cmd" "$description" "$target_path" "$dry_run") || exit_code=$?
+        
+        # Last line of result is reclaimed bytes (echoed in run_cleanup_command)
+        local claimed_bytes=$(echo "$result" | tail -n 1)
+        
+        # If not a number, treat as 0 (for error outputs, etc.)
+        if ! [[ "$claimed_bytes" =~ ^-?[0-9]+$ ]]; then
+            claimed_bytes=0
+        fi
+        
+        if [[ $exit_code -eq 0 ]]; then
+            # Update global variables
+            G_COMMAND_COMPLETED=$((G_COMMAND_COMPLETED + 1))
+            G_COMMAND_RECLAIMED=$((G_COMMAND_RECLAIMED + claimed_bytes))
+        else
+            # Failure/skip counts are not aggregated or added as needed
+            :
+        fi
+    done <<< "$commands"
+    
+    # Remove individual result summaries (integrated output later)
+    echo ""
+    if [[ "$dry_run" == true ]]; then
+        log_info "$G_COMMAND_COMPLETED commands pending"
+    else
+        log_success "$G_COMMAND_COMPLETED commands completed"
+    fi
+}

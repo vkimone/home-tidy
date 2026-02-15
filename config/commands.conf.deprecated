@@ -1,0 +1,14 @@
+# Home-Tidy Command-based Cache Cleanup
+# Some tools are safer to clean with dedicated commands rather than folder deletion
+# Format: command|description|target_path (optional)
+
+[Python]
+uv cache clean|Cleanup Python uv/uvx cache|~/.cache/uv
+
+[Node.js / npm]
+npm cache clean --force|Cleanup npm cache|~/.npm
+yarn cache clean|Cleanup Yarn cache|~/Library/Caches/Yarn
+pnpm store prune|Prune unused pnpm store items|~/Library/pnpm/store
+
+[Docker]
+docker builder prune -f|Prune Docker build cache
