@@ -1,15 +1,22 @@
 #!/bin/bash
 # history.sh - Feature to compare with previous execution records
 
-# Snapshot storage directory (macOS standard)
-SCRIPT_BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SNAPSHOT_DIR="$HOME/Library/Application Support/home-tidy/snapshots"
+# Snapshot storage directory (dynamic resolution)
+SNAPSHOT_DIR="${SNAPSHOT_DIR:-}"
 
 # Snapshot management functions
 
 # Initialize snapshot directory
 init_snapshot_dir() {
-    mkdir -p "$SNAPSHOT_DIR"
+    if [[ -z "$SNAPSHOT_DIR" ]]; then
+        # Try to find resolution function or use default
+        if declare -f get_snapshot_dir > /dev/null; then
+            SNAPSHOT_DIR=$(get_snapshot_dir)
+        else
+            SNAPSHOT_DIR="$HOME/Library/Application Support/home-tidy/snapshots"
+        fi
+    fi
+    mkdir -p "$SNAPSHOT_DIR" 2>/dev/null || mkdir -p "$(dirname "$0")/../snapshots" 2>/dev/null
 }
 
 # Create snapshot of current state

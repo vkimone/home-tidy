@@ -20,19 +20,20 @@
 ```text
 home-tidy/
 ├── home-tidy.sh      # Main execution script
-├── config/           # Configuration files directory
+├── config/           # Configuration files directory (default templates)
 │   ├── target.conf     # Target path configurations
 │   └── whitelist.conf  # Deletion exclusion pattern settings
 └── lib/              # Core logic (Bash libraries)
 
 # Files generated during execution (macOS standard directories)
 ~/Library/Application Support/home-tidy/
+  ├── config/     # User configuration (editable, created on first run)
   ├── snapshots/  # Snapshot files
   └── logs/       # Execution reports
 ```
 
 > [!NOTE]
-> Snapshots and reports are stored in macOS standard paths. This design prepares for Homebrew distribution.
+> On first run, default configs are copied to `~/Library/Application Support/home-tidy/config/` for user customization. Project configs serve as templates.
 
 ---
 
@@ -70,11 +71,20 @@ sudo ./home-tidy.sh
 
 ## 🛠️ Configuration Guide
 
-### `config/target.conf`
+Configuration files are stored in `~/Library/Application Support/home-tidy/config/` after first run.
+
+### `target.conf`
 List the cache folder paths you want to clean. You can use `~/` for home directory relative paths.
 
-### `config/whitelist.conf`
+**Location**: `~/Library/Application Support/home-tidy/config/target.conf`
+
+### `whitelist.conf`
 Define specific file or folder patterns from the paths in `target.conf` that **must never be deleted** (e.g., `com.apple.*`, `settings.json`).
+
+**Location**: `~/Library/Application Support/home-tidy/config/whitelist.conf`
+
+> [!TIP]
+> Edit these files anytime to customize your cleanup targets. Changes take effect immediately.
 
 ---
 
@@ -85,7 +95,7 @@ Define specific file or folder patterns from the paths in `target.conf` that **m
 3. **Dry-run Recommended**: Always check deletion targets with `--dry-run` before actual execution.
 4. **Exclude Important Data**: Ensure that project source code or critical configuration files are not included in `target.conf`.
 5. **OS Compatibility**: This tool is optimized for **macOS and Bash environments**.
-6. **Data Storage**: Snapshots and reports are stored in `~/Library/Application Support/home-tidy`.
+6. **Data Storage**: All data (configs, snapshots, reports) are stored in `~/Library/Application Support/home-tidy`.
 
 ---
 
@@ -94,8 +104,12 @@ Define specific file or folder patterns from the paths in `target.conf` that **m
 Installation via Homebrew will be supported in the future.
 
 **Data Storage Location:** `~/Library/Application Support/home-tidy`
+- User configs: `config/` (editable)
 - Snapshots: `snapshots/`
 - Reports: `logs/`
+
+> [!IMPORTANT]
+> Your custom configurations are preserved across Homebrew updates.
 
 ---
 

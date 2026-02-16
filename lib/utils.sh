@@ -279,6 +279,23 @@ add_to_config() {
     local section="${3:-Others}"
     local section_header="[$section]"
     
+    # Ensure we're using user config directory
+    local user_config_dir="$HOME/Library/Application Support/home-tidy/config"
+    local filename=$(basename "$config_file")
+    
+    # If user config doesn't exist yet, create it from project config
+    if [[ ! -f "$user_config_dir/$filename" ]]; then
+        mkdir -p "$user_config_dir" 2>/dev/null
+        if [[ -f "${SCRIPT_DIR}/config/$filename" ]]; then
+            cp "${SCRIPT_DIR}/config/$filename" "$user_config_dir/$filename" 2>/dev/null
+        elif [[ -f "$config_file" ]]; then
+            cp "$config_file" "$user_config_dir/$filename" 2>/dev/null
+        fi
+    fi
+    
+    # Use user config
+    config_file="$user_config_dir/$filename"
+    
     local norm_item=$(normalize_path "$item")
     
     # Check for duplicates (normalize and compare all paths)
@@ -328,6 +345,23 @@ remove_from_config() {
     local item="$2"
     local norm_item=$(normalize_path "$item")
     local target_line=""
+    
+    # Ensure we're using user config directory
+    local user_config_dir="$HOME/Library/Application Support/home-tidy/config"
+    local filename=$(basename "$config_file")
+    
+    # If user config doesn't exist yet, create it from project config
+    if [[ ! -f "$user_config_dir/$filename" ]]; then
+        mkdir -p "$user_config_dir" 2>/dev/null
+        if [[ -f "${SCRIPT_DIR}/config/$filename" ]]; then
+            cp "${SCRIPT_DIR}/config/$filename" "$user_config_dir/$filename" 2>/dev/null
+        elif [[ -f "$config_file" ]]; then
+            cp "$config_file" "$user_config_dir/$filename" 2>/dev/null
+        fi
+    fi
+    
+    # Use user config
+    config_file="$user_config_dir/$filename"
     
     # Find matching original line using normalized path
     while IFS= read -r line || [[ -n "$line" ]]; do

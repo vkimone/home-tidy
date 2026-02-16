@@ -33,8 +33,38 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="${SCRIPT_DIR}/config"
 LIB_DIR="${SCRIPT_DIR}/lib"
 
-# Report storage directory (macOS standard)
-REPORT_DIR="$HOME/Library/Application Support/home-tidy/logs"
+# Set directories dynamically
+get_snapshot_dir() {
+    local user_dir="$HOME/Library/Application Support/home-tidy/snapshots"
+    local project_dir="${SCRIPT_DIR}/snapshots"
+    
+    # Try user directory - must exist (or be created) AND be writable
+    if ([[ -d "$user_dir" ]] || mkdir -p "$user_dir" 2>/dev/null) && [[ -w "$user_dir" ]]; then
+        echo "$user_dir"
+    else
+        # Fallback to project directory
+        mkdir -p "$project_dir" 2>/dev/null
+        echo "$project_dir"
+    fi
+}
+
+get_report_dir() {
+    local user_dir="$HOME/Library/Application Support/home-tidy/logs"
+    local project_dir="${SCRIPT_DIR}/reports"
+    
+    # Try user directory - must exist (or be created) AND be writable
+    if ([[ -d "$user_dir" ]] || mkdir -p "$user_dir" 2>/dev/null) && [[ -w "$user_dir" ]]; then
+        echo "$user_dir"
+    else
+        # Fallback to project directory
+        mkdir -p "$project_dir" 2>/dev/null
+        echo "$project_dir"
+    fi
+}
+
+# Initial directory resolution
+SNAPSHOT_DIR=$(get_snapshot_dir)
+REPORT_DIR=$(get_report_dir)
 
 # Load libraries
 source "${LIB_DIR}/utils.sh"
@@ -54,6 +84,55 @@ ACTION_ARG=""
 # Global variables for result aggregation
 G_DELETED_COUNT=0
 G_DELETED_SIZE=0
+
+# =====================================
+# Path & Config Management Functions
+# =====================================
+
+# Get config file path (user config takes priority over project config)
+get_config_path() {
+    local filename="$1"
+    local user_config="$HOME/Library/Application Support/home-tidy/config/$filename"
+    local project_config="${CONFIG_DIR}/$filename"
+    
+    # Priority: user config > project config
+    if [[ -f "$user_config" ]]; then
+        echo "$user_config"
+    else
+        echo "$project_config"
+    fi
+}
+
+# Initialize user config directory (first run or Homebrew install)
+init_user_config() {
+    local user_config_dir="$HOME/Library/Application Support/home-tidy/config"
+    
+    # Skip if already initialized
+    [[ -f "$user_config_dir/target.conf" ]] && return 0
+    
+    # Create directory
+    mkdir -p "$user_config_dir" 2>/dev/null || {
+        log_debug "Could not create user config directory (will use project configs)"
+        return 1
+    }
+    
+    # Copy default configs from project
+    local copied=false
+    for conf_file in target.conf whitelist.conf; do
+        if [[ -f "${CONFIG_DIR}/$conf_file" ]]; then
+            if cp "${CONFIG_DIR}/$conf_file" "$user_config_dir/" 2>/dev/null; then
+                copied=true
+            fi
+        fi
+    done
+    
+    if [[ "$copied" == true ]]; then
+        log_info "Initialized user configuration in $user_config_dir"
+    fi
+    
+    return 0
+}
+
 
 # =====================================
 # Help
@@ -166,9 +245,16 @@ parse_args() {
 main() {
     parse_args "$@"
     
-    # Config file paths
-    local target_conf="${CONFIG_DIR}/target.conf"
-    local whitelist_conf="${CONFIG_DIR}/whitelist.conf"
+    # Export resolved directories for libraries
+    export SNAPSHOT_DIR
+    export REPORT_DIR
+    
+    # Initialize user config (first run copies defaults)
+    init_user_config
+    
+    # Resolve config file paths (user config takes priority)
+    local target_conf=$(get_config_path "target.conf")
+    local whitelist_conf=$(get_config_path "whitelist.conf")
 
     # Handle actions
     case "$ACTION" in
