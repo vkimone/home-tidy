@@ -52,6 +52,7 @@ chmod +x home-tidy.sh
 | `--execute` | **(Default)** Performs actual deletion. |
 | `--dry-run` | Shows which files would be deleted without actual deletion. |
 | `--compare-only` | Analyzes only the differences between the previous snapshot and current state. |
+| `--version` | Displays version information. |
 | `--verbose` | Outputs detailed operation logs. |
 | `--help` | Displays this help message. |
 

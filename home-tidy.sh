@@ -32,6 +32,7 @@ trap cleanup_and_exit SIGINT SIGTERM
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="${SCRIPT_DIR}/config"
 LIB_DIR="${SCRIPT_DIR}/lib"
+VERSION_FILE="${SCRIPT_DIR}/VERSION"
 
 # Set directories dynamically
 get_snapshot_dir() {
@@ -135,6 +136,17 @@ init_user_config() {
 
 
 # =====================================
+# Version
+# =====================================
+show_version() {
+    local version="unknown"
+    if [[ -f "$VERSION_FILE" ]]; then
+        version=$(cat "$VERSION_FILE")
+    fi
+    echo "home-tidy version $version"
+}
+
+# =====================================
 # Help
 # =====================================
 show_help() {
@@ -154,6 +166,7 @@ Options:
   --add-whitelist <w>       Add whitelist pattern
   --remove-whitelist <w>    Remove whitelist pattern
   --verbose                 Show detailed logs
+  --version                 Display version information
   --help                    Display this help message
 
 Example:
@@ -192,6 +205,10 @@ parse_args() {
             --verbose)
                 VERBOSE=true
                 shift
+                ;;
+            --version|-v)
+                show_version
+                exit 0
                 ;;
             --help|-h)
                 print_banner
