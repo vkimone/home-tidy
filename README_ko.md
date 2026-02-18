@@ -51,6 +51,13 @@ chmod +x home-tidy.sh
 | `--execute` | **(기본값)** 실제 삭제를 수행합니다. |
 | `--dry-run` | 실제 삭제 없이 어떤 파일이 삭제될지만 미리 보여줍니다. |
 | `--compare-only` | 이전 스냅샷과 현재 상태의 차이점만 분석합니다. |
+| `--list-target` | 현재 설정된 정리 대상 디렉토리 목록을 표시합니다. |
+| `--list-whitelist` | 현재 설정된 화이트리스트 패턴 목록을 표시합니다. |
+| `--section <name>` | 항목을 추가할 섹션 이름을 지정합니다. |
+| `--add-target <p>` | 정리 대상 디렉토리 경로를 추가합니다. |
+| `--remove-target <p>` | 정리 대상 디렉토리 경로를 제거합니다. |
+| `--add-whitelist <w>` | 화이트리스트 패턴을 추가합니다. |
+| `--remove-whitelist <w>` | 화이트리스트 패턴을 제거합니다. |
 | `--version` | 버전 정보를 표시합니다. |
 | `--verbose` | 상세 가동 로그를 출력합니다. |
 | `--help` | 사용 가능한 도움말을 확인합니다. |
@@ -62,6 +69,10 @@ chmod +x home-tidy.sh
 
 # 안전하게 미리보기
 ./home-tidy.sh --dry-run
+
+# 명령행으로 정리 대상 디렉토리 관리
+./home-tidy.sh --add-target ~/.test --section mysection
+./home-tidy.sh --remove-target ~/.test
 
 # 권한 문제가 발생하는 경우 (sudo 사용)
 sudo ./home-tidy.sh

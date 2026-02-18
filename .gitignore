@@ -3,3 +3,5 @@
 Agents.md
 reports
 snapshots
+deploy
+*.tar.gz

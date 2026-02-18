@@ -52,6 +52,13 @@ chmod +x home-tidy.sh
 | `--execute` | **(Default)** Performs actual deletion. |
 | `--dry-run` | Shows which files would be deleted without actual deletion. |
 | `--compare-only` | Analyzes only the differences between the previous snapshot and current state. |
+| `--list-target` | Shows current target directories. |
+| `--list-whitelist` | Shows current whitelist patterns. |
+| `--section <name>` | Specifies a section for adding target/whitelist items. |
+| `--add-target <p>` | Adds a target directory path. |
+| `--remove-target <p>` | Removes a target directory path. |
+| `--add-whitelist <w>` | Adds a whitelist pattern. |
+| `--remove-whitelist <w>` | Removes a whitelist pattern. |
 | `--version` | Displays version information. |
 | `--verbose` | Outputs detailed operation logs. |
 | `--help` | Displays this help message. |
@@ -63,6 +70,10 @@ chmod +x home-tidy.sh
 
 # Safe preview (No deletion)
 ./home-tidy.sh --dry-run
+
+# Manage target directories via command line
+./home-tidy.sh --add-target ~/.test --section mysection
+./home-tidy.sh --remove-target ~/.test
 
 # Use sudo for permission issues
 sudo ./home-tidy.sh
