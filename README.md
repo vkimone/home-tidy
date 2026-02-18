@@ -111,17 +111,35 @@ Define specific file or folder patterns from the paths in `target.conf` that **m
 
 ---
 
-## 📦 Homebrew Distribution (Planned)
+## 📦 Installation (Homebrew)
 
-Installation via Homebrew will be supported in the future.
+You can easily install **Home-Tidy** using Homebrew.
+
+### 1. Add Tap
+```bash
+brew tap vkimone/tap
+```
+
+### 2. Install
+```bash
+brew install home-tidy
+```
+
+### 3. Upgrade
+To update to the latest version:
+```bash
+brew update && brew upgrade home-tidy
+```
+
+---
+
+## 📂 Project Structure & Data
 
 **Data Storage Location:** `~/Library/Application Support/home-tidy`
-- User configs: `config/` (editable)
-- Snapshots: `snapshots/`
-- Reports: `logs/`
+- **User configs**: `config/` (Editable, preserved across updates)
+- **Snapshots**: `snapshots/`
+- **Reports**: `logs/`
 
-> [!IMPORTANT]
-> Your custom configurations are preserved across Homebrew updates.
 
 ---
 

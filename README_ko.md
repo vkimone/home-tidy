@@ -102,13 +102,35 @@ sudo ./home-tidy.sh
 
 ---
 
-## 📦 Homebrew 배포 (예정)
+## 📦 설치 방법 (Homebrew)
 
-향후 Homebrew를 통한 설치를 지원할 예정입니다.
+Homebrew를 사용하면 **Home-Tidy**를 간편하게 설치하고 관리할 수 있습니다.
 
-**데이터 저장 위치:** `~/Library/Application Support/home-tidy`
-- 스냅샷: `snapshots/`
-- 리포트: `logs/`
+### 1. Tap 추가
+```bash
+brew tap vkimone/tap
+```
+
+### 2. 설치
+```bash
+brew install home-tidy
+```
+
+### 3. 업데이트
+최신 버전으로 업데이트하려면 다음 명령어를 실행하세요:
+```bash
+brew update && brew upgrade home-tidy
+```
+
+---
+
+## 📂 데이터 저장 위치
+
+모든 설정과 기록은 다음 경로에 저장되며, 업데이트 시에도 유지됩니다.
+- **경로**: `~/Library/Application Support/home-tidy`
+- **설정 파일**: `config/` (사용자 정의 가능)
+- **스냅샷**: `snapshots/`
+- **리포트**: `logs/`
 
 ---
 
