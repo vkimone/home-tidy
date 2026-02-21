@@ -2,6 +2,10 @@
 
 # 🧹 Home-Tidy
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Shell](https://img.shields.io/badge/Shell-Bash-green.svg)](https://www.gnu.org/software/bash/)
+[![Platform](https://img.shields.io/badge/Platform-macOS%20|%20Linux-lightgrey.svg)](#platform-support)
+
 **Home-Tidy** is a smart home folder (`~/`) cache cleanup tool for macOS users. It provides safe directory analysis and reports the reclaimed space results.
 
 ![home-tidy](./img/home-tidy.png)

@@ -2,6 +2,10 @@
 
 # 🧹 Home-Tidy
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Shell](https://img.shields.io/badge/Shell-Bash-green.svg)](https://www.gnu.org/software/bash/)
+[![Platform](https://img.shields.io/badge/Platform-macOS%20|%20Linux-lightgrey.svg)](#platform-support)
+
 **Home-Tidy**는 macOS 사용자를 위한 스마트한 홈 폴더(`~/`) 캐시 정리 도구입니다. 단순한 파일 삭제를 넘어, 분석 결과를 리포트로 제공합니다.
 
 ![home-tidy](./img/home-tidy.png)
