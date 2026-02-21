@@ -4,6 +4,8 @@
 
 **Home-Tidy** is a smart home folder (`~/`) cache cleanup tool for macOS users. It provides safe directory analysis and reports the reclaimed space results.
 
+![home-tidy](./img/home-tidy.png)
+
 ---
 
 ## ✨ Key Features
